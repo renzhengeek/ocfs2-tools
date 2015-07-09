@@ -336,6 +336,15 @@ struct ocfs2_system_inode_info {
 };
 
 /* System file index */
+
+/**
+ * what's their difference ?
+ *
+ * GLOBAL_INODE_ALLOC
+ * EXTENT_ALLOC
+ * INODE_ALLOC
+ * LOCAL_ALLOC
+ */
 enum {
 	BAD_BLOCK_SYSTEM_INODE = 0,
 	GLOBAL_INODE_ALLOC_SYSTEM_INODE,

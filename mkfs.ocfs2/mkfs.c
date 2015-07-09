@@ -2803,6 +2803,8 @@ init_record(State *s, SystemFileDiskRecord *rec, int type, int mode)
 	rec->links = S_ISDIR(mode) ? 0 : 1;
 
 	rec->bi.used_bits = rec->bi.total_bits = 0;
+	/* eric: dumplicated!
+	 */
 	rec->flags = (OCFS2_VALID_FL | OCFS2_SYSTEM_FL);
 
 	switch (type) {

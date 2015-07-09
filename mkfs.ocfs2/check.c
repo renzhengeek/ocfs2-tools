@@ -292,6 +292,9 @@ int ocfs2_check_volume(State *s)
 	if (mount_flags & OCFS2_MF_MOUNTED) {
 		fprintf(stderr, "%s is mounted; ", s->device_name);
 		if (s->force) {
+			/*
+			 * eric: incorrect!
+			 */
 			fputs("overwriting anyway. Hope /etc/mtab is "
 			      "incorrect.\n", stderr);
 			return 1;
