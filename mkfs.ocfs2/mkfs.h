@@ -133,6 +133,9 @@ struct _AllocGroup {
 
 struct _SystemFileDiskRecord {
 	uint64_t fe_off;
+	/**
+	 * eric: ?
+	 */
         uint16_t suballoc_bit;
 	uint64_t extent_off;
 	uint64_t extent_len;

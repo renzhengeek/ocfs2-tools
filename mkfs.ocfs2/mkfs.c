@@ -1810,6 +1810,10 @@ initialize_alloc_group(State *s, const char *name,
 		       uint64_t blkno, uint16_t chain,
 		       uint16_t cpg, uint16_t bpc)
 {
+	/**
+	 * eric: global inode alloc, global bitmap are in the same
+	 * cluster group 0, but why are they alloc twice?
+	 */
 	AllocGroup *group;
 
 	group = do_malloc(s, sizeof(AllocGroup));
@@ -1822,8 +1826,14 @@ initialize_alloc_group(State *s, const char *name,
 	group->gd->bg_generation = s->vol_generation;
 	group->gd->bg_size =
 			(uint32_t)ocfs2_group_bitmap_size(s->blocksize, 0, 0);
+	/**
+	 * eric: one cluster per bit
+	 */
 	group->gd->bg_bits = cpg * bpc;
 	group->gd->bg_chain = chain;
+	/**
+	 * eric: how to calcute?
+	 */
 	group->gd->bg_parent_dinode = alloc_inode->fe_off >> 
 					s->blocksize_bits;
 	group->gd->bg_blkno = blkno;
@@ -1896,10 +1906,17 @@ initialize_bitmap(State *s, uint32_t bits, uint32_t unit_bits,
 		bitmap->groups[0]->gd->bg_free_bits_count--;
 		bm_record->bi.used_bits++;
 	}
+	/**
+	 * eric: one chain record is for a cluster; used to chain multiple
+	 * clusters together
+	 */
 	bitmap->groups[0]->chain_total = s->global_cpg;
 	bitmap->groups[0]->chain_free = 
 		bitmap->groups[0]->gd->bg_free_bits_count;
 
+	/**
+	 * eric: how does chain work?
+	 */
 	chain = 1;
 	blkno = (uint64_t) s->global_cpg << (s->cluster_size_bits - s->blocksize_bits);
 	cpg = s->global_cpg;
@@ -2016,6 +2033,9 @@ alloc_from_bitmap(State *s, uint64_t num_bits, AllocBitmap *bitmap,
 	unsigned int size;
 
 	found = 0;
+	/**
+	 * eric: chains seems to link group bitmap together
+	 */
 	for(i = 0; i < bitmap->num_chains && !found; i++) {
 		group = bitmap->groups[i];
 		do {
@@ -2048,6 +2068,10 @@ alloc_from_bitmap(State *s, uint64_t num_bits, AllocBitmap *bitmap,
 	*start = *start << bitmap->unit_bits;
 	*num = ((uint64_t)num_bits) << bitmap->unit_bits;
 	gd->bg_free_bits_count -= num_bits;
+	/**
+	 * eric: it seems that there is more than one chain.
+	 * each chain links some group together.
+	 */
 	chain = gd->bg_chain;
 	bitmap->groups[chain]->chain_free -= num_bits;
 
@@ -2108,6 +2132,9 @@ alloc_inode(State *s, uint16_t *suballoc_bit)
 	uint64_t ret;
 	uint16_t num;
 
+	/**
+	 * eric: num is unused.
+	 */
 	alloc_from_group(s, 1, s->system_group,
 			 &ret, &num);
 
@@ -2472,6 +2499,9 @@ format_file(State *s, SystemFileDiskRecord *rec)
 	strcpy((char *)di->i_signature, OCFS2_INODE_SIGNATURE);
 	di->i_generation = s->vol_generation;
 	di->i_fs_generation = s->vol_generation;
+	/**
+	 * eric: what is suballoc* something like?
+	 */
 	di->i_suballoc_slot = (__u16)OCFS2_INVALID_SLOT;
         di->i_suballoc_bit = rec->suballoc_bit;
 	di->i_blkno = rec->fe_off >> s->blocksize_bits;
