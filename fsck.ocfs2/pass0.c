@@ -1349,6 +1349,10 @@ errcode_t o2fsck_pass0(o2fsck_state *ost)
 		goto out;
 	}
 
+	/**
+	 * eric: global bitmp's blkno?
+	 * 	inode alloc block?
+	 */
 	ret = ocfs2_read_inode(ost->ost_fs, blkno, (char *)di);
 	if (ret) {
 		com_err(whoami, ret, "reading inode alloc inode "

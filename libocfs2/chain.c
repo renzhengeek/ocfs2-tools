@@ -353,6 +353,10 @@ errcode_t ocfs2_cache_chain_allocator_blocks(ocfs2_filesys *fs,
 		ivus[i].ivu_buflen = blocksize;
 	}
 
+	/**
+	 * eric: when to break?
+	 */
+
 	while (count) {
 		ret = io_vec_read_blocks(channel, ivus, count);
 		if (ret)
