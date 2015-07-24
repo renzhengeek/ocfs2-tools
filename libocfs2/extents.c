@@ -141,7 +141,13 @@ errcode_t ocfs2_read_extent_block_nocheck(ocfs2_filesys *fs,
 
 	if (memcmp(eb->h_signature, OCFS2_EXTENT_BLOCK_SIGNATURE,
 		   strlen(OCFS2_EXTENT_BLOCK_SIGNATURE))) {
+		/**
+		 * eric: why always get here?
+		 * Mybe it's caused by in-kernel ocfs2 write a different signature?
+		 */
 		ret = OCFS2_ET_BAD_EXTENT_BLOCK_MAGIC;
+		com_err("ocfs2_read_extent_block_nocheck", ret,
+			"eb->h_signature is: %s", eb->h_signature);
 		goto out;
 	}
 
@@ -156,6 +162,9 @@ out:
 	return ret;
 }
 
+/**
+ * eric: why always got error? - bad magic number
+ */
 errcode_t ocfs2_read_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 				  char *eb_buf)
 {
@@ -868,7 +877,7 @@ static int walk_blocks_func(ocfs2_filesys *fs,
 				wb->run_first_bcount,
 				wb->run_first_blkno);
 		} else {
-			fprintf(stdout, 
+			fprintf(stdout,
 				"(%"PRIu64"-%"PRIu64"):%"PRIu64"-%"PRIu64"",
 				wb->run_first_bcount,
 				bcount - 1,
@@ -887,7 +896,7 @@ static int walk_blocks_func(ocfs2_filesys *fs,
 			fprintf(stdout, "(%"PRIu64"):%"PRIu64"\n",
 				bcount, blkno);
 		} else {
-			fprintf(stdout, 
+			fprintf(stdout,
 				"(%"PRIu64"-%"PRIu64"):%"PRIu64"-%"PRIu64"\n",
 				wb->run_first_bcount,
 				bcount,
