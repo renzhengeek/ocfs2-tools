@@ -568,6 +568,10 @@ static void o2fsck_verify_inode_fields(ocfs2_filesys *fs,
 		goto out;
 	}
 
+	/**
+	 * eric: what's fuck here?
+	 * extent block?
+	 */
 	if (!(S_ISLNK(di->i_mode) && !di->i_clusters) &&
 	    !(di->i_dyn_features & OCFS2_INLINE_DATA_FL) &&
 	    !(di->i_flags & (OCFS2_LOCAL_ALLOC_FL |
