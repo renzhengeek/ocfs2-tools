@@ -60,6 +60,8 @@ static struct prompt_code prompt_codes[NUM_FSCK_TYPE] = {
 	define_prompt_code(EB_GEN_FIX, corrupt_file, "", 1,
 			   "Corrupt an extent block's generation number "
 			   "so that fsck.ocfs2 can fix it"),
+	define_prompt_code(EB_ECC, corrupt_file, "", 1,
+			   "Corrupt an extent blocks's CRC and ECC value of meta"),
 	define_prompt_code(EXTENT_MARKED_UNWRITTEN, corrupt_file, "nounwritten", 1,
 			   "Mark an extent unwritten when the filesystem "
 			   "does not support it"),

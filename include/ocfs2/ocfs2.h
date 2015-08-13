@@ -464,6 +464,8 @@ errcode_t ocfs2_read_extent_block_nocheck(ocfs2_filesys *fs, uint64_t blkno,
 					  char *eb_buf);
 errcode_t ocfs2_write_extent_block(ocfs2_filesys *fs, uint64_t blkno,
        				   char *eb_buf);
+errcode_t ocfs2_write_extent_block_without_meta_ecc(ocfs2_filesys *fs, uint64_t blkno,
+				   char *eb_buf);
 void ocfs2_swap_refcount_list_to_cpu(ocfs2_filesys *fs, void *obj,
 				     struct ocfs2_refcount_list *rl);
 void ocfs2_swap_refcount_list_from_cpu(ocfs2_filesys *fs, void *obj,
