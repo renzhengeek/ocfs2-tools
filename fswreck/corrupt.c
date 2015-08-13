@@ -71,6 +71,9 @@ void corrupt_file(ocfs2_filesys *fs, enum fsck_type type, uint16_t slotnum)
 	case EB_GEN_FIX:
 		func = mess_up_extent_block;
 		break;
+	case EB_ECC:
+		func = mess_up_extent_block;
+		break;
 	case EXTENT_EB_INVALID:
 		func = mess_up_extent_block;
 		break;

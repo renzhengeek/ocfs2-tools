@@ -25,7 +25,8 @@
 
 /* This file will create the following errors for extent rec and blocks .
  *
- * Extent block error:	EB_BLKNO, EB_GEN, EB_GEN_FIX, EXTENT_EB_INVALID
+ * Extent block error:	EB_BLKNO, EB_GEN, EB_GEN_FIX, EXTENT_EB_INVALID,
+ *			EB_ECC
  *
  * Extent list error:	EB_LIST_DEPTH, EXTENT_LIST_COUNT, EXTENT_LIST_FREE 
  *
@@ -176,6 +177,15 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 				"generation number from 0x%x to 0x%x\n",
 				blkno, oldno, eb->h_fs_generation);
 			break;
+		case EB_ECC:
+			fprintf(stdout, "EB_ECC: "
+				"Corrupt inode#%"PRIu64", change extent block#"
+				"%"PRIu64", set h_check.bc_crc32e=%"PRIu64" and "
+				"h_check.bc_ecc=%"PRIu64" to 0x1234\n", blkno,
+				eb->h_blkno, eb->h_check.bc_crc32e, eb->h_check.bc_ecc);
+			eb->h_check.bc_crc32e = 0x1234;
+			eb->h_check.bc_ecc = 0x1234;
+			break;
 		case EXTENT_EB_INVALID:
 			memset(eb->h_signature, 'a', sizeof(eb->h_signature));
 			fprintf(stdout, "Corrupt the signature of extent block "
@@ -210,8 +220,13 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 			FSWRK_FATAL("Invalid type=%d", type);
 		}
 
-		ret = ocfs2_write_extent_block(fs, el->l_recs[0].e_blkno,
-					       extbuf);
+		if (type != EB_ECC)
+			ret = ocfs2_write_extent_block(fs, el->l_recs[0].e_blkno,
+						extbuf);
+		else
+			ret = ocfs2_write_extent_block_without_meta_ecc(fs, el->l_recs[0].e_blkno,
+						extbuf);
+
 		if (ret)
 			FSWRK_COM_FATAL(progname, ret);
 		

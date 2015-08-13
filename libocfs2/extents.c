@@ -208,7 +208,46 @@ out:
 	return ret;
 }
 
+/**
+ * Same as ocfs2_write_extent_block, but without ocfs2_compute_meta_ecc function so
+ * that the extent block meta CRC and ECC value wouldn't be overwritten after corrupted
+ * in fswreck.
+ */
+errcode_t ocfs2_write_extent_block_without_meta_ecc(ocfs2_filesys *fs, uint64_t blkno,
+				   char *eb_buf)
+{
+	errcode_t ret;
+	char *blk;
+	struct ocfs2_extent_block *eb;
 
+	if (!(fs->fs_flags & OCFS2_FLAG_RW))
+		return OCFS2_ET_RO_FILESYS;
+
+	if ((blkno < OCFS2_SUPER_BLOCK_BLKNO) ||
+	    (blkno > fs->fs_blocks))
+		return OCFS2_ET_BAD_BLKNO;
+
+	ret = ocfs2_malloc_block(fs->fs_io, &blk);
+	if (ret)
+		return ret;
+
+	memcpy(blk, eb_buf, fs->fs_blocksize);
+
+	eb = (struct ocfs2_extent_block *) blk;
+	ocfs2_swap_extent_block_from_cpu(fs, eb);
+
+	ret = io_write_block(fs->fs_io, blkno, 1, blk);
+	if (ret)
+		goto out;
+
+	fs->fs_flags |= OCFS2_FLAG_CHANGED;
+	ret = 0;
+
+out:
+	ocfs2_free(&blk);
+
+	return ret;
+}
 
 struct extent_context {
 	ocfs2_filesys *fs;
