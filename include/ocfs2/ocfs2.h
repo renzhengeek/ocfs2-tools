@@ -209,6 +209,10 @@ struct _ocfs2_filesys {
 	void *fs_private;
 };
 
+/**
+ * eric: it's used for what?
+ * cache systemfile inode?
+ */
 struct _ocfs2_cached_inode {
 	struct _ocfs2_filesys *ci_fs;
 	uint64_t ci_blkno;

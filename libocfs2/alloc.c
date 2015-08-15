@@ -760,6 +760,9 @@ errcode_t ocfs2_new_clusters(ocfs2_filesys *fs,
 	uint64_t start_bit;
 	uint64_t found;
 
+	/**
+	 * eric: load from disk every time?
+	 */
 	ret = ocfs2_load_allocator(fs, GLOBAL_BITMAP_SYSTEM_INODE,
 				   0, &fs->fs_cluster_alloc);
 	if (ret)

@@ -371,6 +371,9 @@ static void chainalloc_bit_change_notify(ocfs2_bitmap *bitmap,
 	cb->cb_dirty = 1;
 }
 
+/**
+ * eric: it's intersting!
+ */
 static struct ocfs2_bitmap_operations chainalloc_bitmap_ops = {
 	.set_bit		= ocfs2_bitmap_set_generic,
 	.clear_bit		= ocfs2_bitmap_clear_generic,

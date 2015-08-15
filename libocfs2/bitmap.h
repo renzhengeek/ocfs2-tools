@@ -74,6 +74,9 @@ struct ocfs2_bitmap_operations {
 				 uint64_t first_bit);
 };
 
+/**
+ * eric: bitmap vs rb tree?
+ */
 struct _ocfs2_bitmap {
 	ocfs2_filesys *b_fs;
 	uint64_t b_set_bits;

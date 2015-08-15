@@ -137,6 +137,9 @@ errcode_t ocfs2_bitmap_find_next_clear(ocfs2_bitmap *bitmap,
 }
 
 /* kind of poorly named, but I couldn't come up with something nicer */
+/**
+ * eric: call it an end. but what bitmap layout looks like?
+ */
 errcode_t ocfs2_bitmap_alloc_range(ocfs2_bitmap *bitmap, uint64_t min,
 				   uint64_t len, uint64_t *first_bit,
 				   uint64_t *bits_found)
