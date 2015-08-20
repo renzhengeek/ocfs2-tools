@@ -115,44 +115,27 @@ static void custom_extend_allocation(ocfs2_filesys *fs, uint64_t ino,
 	return;
 }
 
-/* Damage the file's extent block according to the given fsck_type */
-static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
-				enum fsck_type type)
+static int travel_extent_blocks(ocfs2_filesys *fs, struct ocfs2_extent_list *el,
+								enum fsck_type type)
 {
 	errcode_t ret;
-	char *inobuf = NULL;
-	char *extbuf = NULL;
-	struct ocfs2_dinode *di;
-	struct ocfs2_extent_list *el;
+	uint32_t i;
 	struct ocfs2_extent_block *eb;
-	uint32_t oldno;
-	uint64_t oldblkno;
+	char *extbuf = NULL;
+	uint32_t oldno, oldblkno;
+	uint64_t blkno = 454667;
 
-	ret = ocfs2_malloc_block(fs->fs_io, &inobuf);
-	if (ret)
-		FSWRK_COM_FATAL(progname, ret);
-	
-	ret = ocfs2_read_inode(fs, blkno, inobuf);
-	if (ret)
-		FSWRK_COM_FATAL(progname, ret);
+	if (el->l_next_free_rec ==0 || el->l_tree_depth == 0)
+		return 0;
 
-	di = (struct ocfs2_dinode *)inobuf;
-
-	if (!(di->i_flags & OCFS2_VALID_FL))
-		FSWRK_FATAL("not a file");
-
-	el = &(di->id2.i_list);
-
-	if (el->l_next_free_rec > 0 && el->l_tree_depth > 0) {
+	for (i = 0; i < el->l_next_free_rec; i++) {
 		ret = ocfs2_malloc_block(fs->fs_io, &extbuf);
 		if (ret)
 			FSWRK_COM_FATAL(progname, ret);
-
-		ret = ocfs2_read_extent_block(fs, el->l_recs[0].e_blkno,
+		ret = ocfs2_read_extent_block(fs, el->l_recs[i].e_blkno,
 					      extbuf);
 		if (ret)
 			FSWRK_COM_FATAL(progname, ret);
-
 		eb = (struct ocfs2_extent_block *)extbuf;
 
 		switch (type) {
@@ -161,7 +144,7 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 			eb->h_blkno += 1;
 			fprintf(stdout, "EB_BLKNO: Corrupt inode#%"PRIu64", "
 				"change extent block's number from %"PRIu64" to "
-			       	"%"PRIu64"\n", blkno, oldblkno, eb->h_blkno);
+					"%"PRIu64"\n", blkno, oldblkno, eb->h_blkno);
 			break;
 		case EB_GEN:
 		case EB_GEN_FIX:
@@ -191,7 +174,7 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 				"%"PRIu64"\n",
 				eb->h_blkno);
 			break;
-		case EXTENT_LIST_DEPTH: 
+		case EXTENT_LIST_DEPTH:
 			oldno = eb->h_list.l_tree_depth;
 			eb->h_list.l_tree_depth += 1;
 			fprintf(stdout, "EXTENT_LIST_DEPTH: Corrupt inode#"
@@ -199,7 +182,7 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 				"from %d to %d\n", blkno, oldno,
 				eb->h_list.l_tree_depth);
 			break;
-	 	case EXTENT_LIST_COUNT:
+		case EXTENT_LIST_COUNT:
 			oldno = eb->h_list.l_count;
 			eb->h_list.l_count = 2 *
 				ocfs2_extent_recs_per_eb(fs->fs_blocksize);
@@ -209,7 +192,7 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 			break;
 		case EXTENT_LIST_FREE:
 			oldno = eb->h_list.l_next_free_rec;
-			eb->h_list.l_next_free_rec = 2 * 
+			eb->h_list.l_next_free_rec = 2 *
 				ocfs2_extent_recs_per_eb(fs->fs_blocksize);
 			fprintf(stdout, "EXTENT_LIST_FREE: Corrupt inode#%"PRIu64", "
 				"change blkno from %d to %d\n",
@@ -220,11 +203,51 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 		}
 
 		if (type != EB_ECC)
-			ret = ocfs2_write_extent_block(fs, el->l_recs[0].e_blkno,
+			ret = ocfs2_write_extent_block(fs, el->l_recs[i].e_blkno,
 						extbuf);
 		else
-			ret = ocfs2_write_extent_block_without_meta_ecc(fs, el->l_recs[0].e_blkno,
+			ret = ocfs2_write_extent_block_without_meta_ecc(fs, el->l_recs[i].e_blkno,
 						extbuf);
+
+		ret = travel_extent_blocks(fs, &(eb->h_list), type);
+	}
+	
+	if (extbuf)
+		free(extbuf);
+
+	return ret;
+}
+
+/* Damage the file's extent block according to the given fsck_type */
+static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
+				enum fsck_type type)
+{
+	errcode_t ret;
+	char *inobuf = NULL;
+	struct ocfs2_dinode *di;
+	struct ocfs2_extent_list *el;
+	struct ocfs2_extent_block *eb;
+
+	blkno = 454667;
+
+	ret = ocfs2_malloc_block(fs->fs_io, &inobuf);
+	if (ret)
+		FSWRK_COM_FATAL(progname, ret);
+	
+	ret = ocfs2_read_inode(fs, blkno, inobuf);
+	if (ret)
+		FSWRK_COM_FATAL(progname, ret);
+
+	di = (struct ocfs2_dinode *)inobuf;
+
+	if (!(di->i_flags & OCFS2_VALID_FL))
+		FSWRK_FATAL("not a file");
+
+	el = &(di->id2.i_list);
+
+	if (el->l_next_free_rec > 0 && el->l_tree_depth > 0) {
+
+		ret = travel_extent_blocks(fs, el, type);
 
 		if (ret)
 			FSWRK_COM_FATAL(progname, ret);
@@ -237,8 +260,6 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 		FSWRK_WARN("File inode#%"PRIu64" does not have an extent "
 			   "block to corrupt.", blkno);
 
-	if (extbuf)
-		ocfs2_free(&extbuf);
 	if (inobuf)
 		ocfs2_free(&inobuf);
 	return;
