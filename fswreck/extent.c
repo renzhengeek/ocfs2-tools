@@ -173,9 +173,9 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 				fprintf(stdout, "EB_GEN_FIX: ");
 			else
 				fprintf(stdout, "EXTENT_EB_INVALID: ");
-			fprintf(stdout, "Corrupt inode#%"PRIu64", change "
-				"generation number from 0x%x to 0x%x\n",
-				blkno, oldno, eb->h_fs_generation);
+			fprintf(stdout, "Corrupt inode#%"PRIu64", change extent "
+				"block#%"PRIu64", set generation number from 0x%x to 0x%x\n",
+				blkno, eb->h_blkno, oldno, eb->h_fs_generation);
 			break;
 		case EB_ECC:
 			fprintf(stdout, "EB_ECC: "
@@ -188,16 +188,15 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 			break;
 		case EXTENT_EB_INVALID:
 			memset(eb->h_signature, 'a', sizeof(eb->h_signature));
-			fprintf(stdout, "Corrupt the signature of extent block "
-				"%"PRIu64"\n",
-				eb->h_blkno);
+			fprintf(stdout, "Corrupt inode#%"PRIu64", change the signature of "
+				"exent block#%"PRIu64"\n", blkno, eb->h_blkno);
 			break;
 		case EXTENT_LIST_DEPTH: 
 			oldno = eb->h_list.l_tree_depth;
 			eb->h_list.l_tree_depth += 1;
 			fprintf(stdout, "EXTENT_LIST_DEPTH: Corrupt inode#"
-				"%"PRIu64", change first block's list depth "
-				"from %d to %d\n", blkno, oldno,
+				"%"PRIu64", change first block#%"PRIu64"'s list depth "
+				"from %d to %d\n", blkno, eb->h_blkno, oldno,
 				eb->h_list.l_tree_depth);
 			break;
 	 	case EXTENT_LIST_COUNT:
@@ -205,16 +204,16 @@ static void damage_extent_block(ocfs2_filesys *fs, uint64_t blkno,
 			eb->h_list.l_count = 2 *
 				ocfs2_extent_recs_per_eb(fs->fs_blocksize);
 			fprintf(stdout, "EXTENT_LIST_COUNT: Corrupt inode#"
-				"%"PRIu64", change cluster from %d to %d\n",
-				blkno, oldno, eb->h_list.l_count);
+				"%"PRIu64", change cluster of extent block#%"PRIu64" from %d "
+				"to %d\n", blkno, eb->h_blkno, oldno, eb->h_list.l_count);
 			break;
 		case EXTENT_LIST_FREE:
 			oldno = eb->h_list.l_next_free_rec;
 			eb->h_list.l_next_free_rec = 2 * 
 				ocfs2_extent_recs_per_eb(fs->fs_blocksize);
 			fprintf(stdout, "EXTENT_LIST_FREE: Corrupt inode#%"PRIu64", "
-				"change blkno from %d to %d\n",
-				blkno, oldno, eb->h_list.l_next_free_rec);
+				"change blkno of extent block#%"PRIu64" from %d to %d\n",
+				blkno, eb->h_blkno, oldno, eb->h_list.l_next_free_rec);
 			break;
 		default:
 			FSWRK_FATAL("Invalid type=%d", type);
