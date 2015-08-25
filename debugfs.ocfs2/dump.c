@@ -454,6 +454,9 @@ void dump_extent_block(FILE *out, struct ocfs2_extent_block *blk)
 
 	dump_block_check(out, &blk->h_check, blk);
 
+	fprintf(out, "\tFS Generation: %"PRIu32" (0x%x)\n", blk->h_fs_generation,
+		blk->h_fs_generation);
+
 	return ;
 }
 
