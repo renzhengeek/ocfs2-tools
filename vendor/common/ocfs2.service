@@ -1,7 +1,7 @@
 [Unit]
 Description=Load ocfs2 Modules
 Requires=o2cb.service
-After=o2cb.service
+After=o2cb.service remote-fs.target
 
 [Service]
 Type=oneshot
